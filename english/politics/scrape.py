@@ -42,7 +42,7 @@ class Reviews(Scrape):
         time.sleep(2)
         username=self.soup.find_all('a',class_='user')
         Username=[user.text for user in username]
-        print(f'----FOUND {len(username)} USERS REVIEWS-----')
+        print(f'----FOUND {len(username)} USERS-----')
 
         #check all the user's username
         for user in username:
@@ -74,11 +74,27 @@ class Reviews(Scrape):
         #supposedly there should be 30 reviews
         print(f'---------------FOUND {len(final_review)} REVIEWS---------------')
         return final_review
+
+    def get_star_review(self):
+      print('---GETTING STAR REVIEWS---')
+      time.sleep(2)
+      star=self.soup.select('span.staticStars.notranslate')
+      Star=[review.text for review in star]
+      #remove empty strings in the list
+      while('' in Star):
+          Star.remove('')
+
+      print(Star)
+      print(f'FOUND {len(Star)} STAR REVIEWS')
+      for x in star:
+          print(x.text)
+          print('---------')
             
             
 
 main_page=Reviews(ChromeDriverManager().install(),'https://www.goodreads.com/book/show/19083.Politics')
 #call the main function to get request from main page, if we dont call the main page requester our soup object wont be pass
 main_page.get_request()
-main_page.get_usernames()
-main_page.get_reviews()
+#main_page.get_usernames()
+#main_page.get_reviews()
+main_page.get_star_review()

@@ -47,6 +47,7 @@ class Reviews(Scrape):
 
     def get_reviews(self):
         time.sleep(2)
+        print('asdasda')
         reviews=self.soup.find_all('')   
 
 main_page=Reviews(ChromeDriverManager().install(),'https://www.goodreads.com/book/show/19083.Politics')

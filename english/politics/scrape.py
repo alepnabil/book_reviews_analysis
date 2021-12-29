@@ -4,6 +4,8 @@ import requests
 from bs4 import BeautifulSoup
 import selenium
 from selenium import webdriver
+from openpyxl import Workbook,load_workbook
+from openpyxl.utils import get_column_letter
 import time
 import os
 
@@ -46,9 +48,9 @@ class Reviews(Scrape):
         #check all the user's username
         for user in username:
             print(user.text)
-        return Username
-        
-
+        self.Username=Username
+      
+       
     def get_reviews(self):
         final_review=[]
         time.sleep(2)
@@ -72,9 +74,10 @@ class Reviews(Scrape):
 
         #supposedly there should be 30 reviews
         print(f'---------------FOUND {len(final_review)} REVIEWS---------------')
-        return final_review
+        User_reviews=final_review
+        self.User_reviews=User_reviews
 
-    def get_star_review(self):
+    def get_star_review(self,page):
       print('---GETTING STAR REVIEWS---')
       time.sleep(2)
       star=self.soup.select('span.staticStars.notranslate')
@@ -88,6 +91,23 @@ class Reviews(Scrape):
       for x in star:
           print(x.text)
           print('---------')
+
+      self.append_to_csv(self.Username, self.User_reviews, Star, page)
+
+
+    def append_to_csv(self,username,user_reviews,star,page_name):
+
+        print(f'appending to csv for page {page_name}....')
+        
+        
+        Username=pd.DataFrame(username)
+        User_reviews=pd.DataFrame(user_reviews)
+        User_star=pd.DataFrame(star)
+
+        df=pd.concat([Username,User_reviews,User_star],axis=1)
+        df.to_csv('E:\\New folder\\Udemy\\personal data science projects\\book reviews analysis\\english\\politics\\'+str(page_name)+'_page.csv')
+        print(f'done saving csv for {page_name} page')
+
             
 class Next_page(Reviews):
 
@@ -97,19 +117,27 @@ class Next_page(Reviews):
         print('getting page 1...')
         self.driver.get(self.link)
         source=self.driver.page_source
+
         #scrape first page usernames
         self.get_usernames(source)
+        self.get_reviews()
+        self.get_star_review(1)
+
+        #loop through other pages. in this case we know there is 10 pages.
         for i in range(2,11):
             try:
                 print(f'getting page {i} ....') 
                 time.sleep(7)
-                #click on the next page button
+                #currently we are still at the first page
+                #now we click next page
                 next_page=self.driver.find_element_by_class_name('next_page')
                 next_page.click()
-                time.sleep(7)
                 #parse the elements of the new page (since it is on the same link)
+                time.sleep(10)
                 source=self.driver.page_source
                 self.get_usernames(source)
+                self.get_reviews()
+                self.get_star_review(i)
             except:
                 print('COULDNT CLICK')
 

@@ -22,23 +22,22 @@ class Scrape():
         self.driver=webdriver.Chrome(self.path)
         self.link=link
     
-    #request page 
+    #to test request page
     def get_request(self):
         print('-----GETTING REQUEST------')
         try:
             time.sleep(2)
             self.driver.get(self.link)
             time.sleep(2)
-            self.soup=BeautifulSoup(self.driver.page_source,"html.parser")
         except:
             print('COULD NOT REQUEST PAGE')
-    
 
 class Reviews(Scrape):
 
 
     #get usernames of all users
-    def get_usernames(self):
+    def get_usernames(self,source):
+        self.soup=BeautifulSoup(source,"html.parser")
         time.sleep(2)
         username=self.soup.find_all('a',class_='user')
         Username=[user.text for user in username]
@@ -90,11 +89,35 @@ class Reviews(Scrape):
           print(x.text)
           print('---------')
             
-            
+class Next_page(Reviews):
 
-main_page=Reviews(ChromeDriverManager().install(),'https://www.goodreads.com/book/show/19083.Politics')
+    def navigate_through_page(self):
+
+        #go to first page
+        print('getting page 1...')
+        self.driver.get(self.link)
+        source=self.driver.page_source
+        #scrape first page usernames
+        self.get_usernames(source)
+        for i in range(2,11):
+            try:
+                print(f'getting page {i} ....') 
+                time.sleep(7)
+                #click on the next page button
+                next_page=self.driver.find_element_by_class_name('next_page')
+                next_page.click()
+                time.sleep(7)
+                #parse the elements of the new page (since it is on the same link)
+                source=self.driver.page_source
+                self.get_usernames(source)
+            except:
+                print('COULDNT CLICK')
+
+main_page=Next_page(ChromeDriverManager().install(),'https://www.goodreads.com/book/show/19083.Politics')
 #call the main function to get request from main page, if we dont call the main page requester our soup object wont be pass
-main_page.get_request()
+#main_page.get_request()
 #main_page.get_usernames()
 #main_page.get_reviews()
-main_page.get_star_review()
+#main_page.get_star_review()
+
+main_page.navigate_through_page()

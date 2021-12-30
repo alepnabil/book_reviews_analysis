@@ -1,8 +1,6 @@
 import pandas as pd
 import glob
 import os 
-from pathlib import Path
-filepaths = [f for f in os.listdir(".") if f.endswith('.csv')]
 
 
 def concat_data():
@@ -17,14 +15,13 @@ def concat_data():
     sorted_files = sorted(filepaths, key=lambda x: int(x.split('_')[0]))
     #print(sorted_files)
 
-
+    #get all files directory
     clean_files=[]
     for file in sorted_files:
         current_file=(dir_path + '\\' + file)
         clean_files.append(current_file)
     
-    #print(clean_files)
-
+    #concat all data
     df = pd.concat(map(pd.read_csv, clean_files), ignore_index=True)
     df.to_csv(r'E:\New folder\Udemy\personal data science projects\book reviews analysis\english\politics\df.csv')
 

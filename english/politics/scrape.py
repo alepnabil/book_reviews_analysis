@@ -78,19 +78,35 @@ class Reviews(Scrape):
         self.User_reviews=User_reviews
 
     def get_star_review(self,page):
+      Star=[]
       print('---GETTING STAR REVIEWS---')
       time.sleep(2)
-      star=self.soup.select('span.staticStars.notranslate')
-      Star=[review.text for review in star]
-      #remove empty strings in the list
-      while('' in Star):
-          Star.remove('')
+      div=self.soup.find_all('div',class_='reviewHeader uitext stacked')
+
+      #find all the review divs
+      for x in div:
+        try:
+            #try to see if the user gives a star review or not 
+            print('FOUND STAR REVIEW')
+            ratings=x.find('span',class_='staticStars notranslate')
+            for y in ratings:
+                #if there is a star review, we only want the review text
+                #so this ignores the empty strings(?)
+                #else will just pass
+                if len(y.text):
+                    print(y.text)
+                    Star.append(y.text)
+                    print('------------')
+                else:
+                    pass
+        #if the user doesnt give any star review
+        except:
+            print('-------------COULDNT FIND ELEMENT----------------')
+            Star.append('NONE')
 
       print(Star)
       print(f'FOUND {len(Star)} STAR REVIEWS')
-      for x in star:
-          print(x.text)
-          print('---------')
+
 
       self.append_to_csv(self.Username, self.User_reviews, Star, page)
 
@@ -105,7 +121,7 @@ class Reviews(Scrape):
         User_star=pd.DataFrame(star)
 
         df=pd.concat([Username,User_reviews,User_star],axis=1)
-        df.to_csv('E:\\New folder\\Udemy\\personal data science projects\\book reviews analysis\\english\\politics\\'+str(page_name)+'_page.csv')
+        df.to_csv('E:\\New folder\\Udemy\\personal data science projects\\book reviews analysis\\english\\politics\\data\\'+str(page_name)+'_page.csv')
         print(f'done saving csv for {page_name} page')
 
             

@@ -3,6 +3,7 @@ import glob
 import os 
 
 
+#concat all 10 pages of review into 1 csv file
 def concat_data():
 
     dir_path=r'E:\New folder\Udemy\personal data science projects\book reviews analysis\english\politics\data'

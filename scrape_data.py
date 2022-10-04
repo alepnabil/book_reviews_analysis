@@ -5,6 +5,7 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchWindowException
+from selenium.common.exceptions import NoSuchElementException
 
 
 
@@ -51,59 +52,79 @@ class Goodreadscraper():
 
     def scrape_data(self):
 
-        book_review_data = {
-            "reviewer_name": [],
-            "reviewer_stats": [],
-            "reviewer_ratings": [],
-            "review_text_likes": [],
-            "review_text": [],
-        }
+            # book_review_data = {
+            #     "reviewer_name": [],
+            #     "reviewer_stats": [],
+            #     "reviewer_ratings": [],
+            #     "review_text": [],
+            # }
 
-        print('-------scraping data-----')
-        time.sleep(10)
-        if self.page_count == 0 :
-            # reviewer_name = self.driver.find_elements(By.CLASS_NAME,
-            #                                           'ReviewerProfile__name')
-            # reviewer_stats = self.driver.find_elements(By.CLASS_NAME,
-            #                                            'ReviewerProfile__meta')
-            # raw_reviewer_ratings = self.driver.find_elements(By.CSS_SELECTOR,
-            #                                                  'div.ShelfStatus')
-            # review_text_likes = self.driver.find_elements(By.CSS_SELECTOR,
-            #                                               'div.SocialFooter__statsContainer')
-            review_text = self.driver.find_elements(By.CSS_SELECTOR,
-                                                    '#ReviewsSection .Formatted')
-            # raw_reviewer_ratings = self.driver.find_elements(By.CSS_SELECTOR,
-            #                                                  'div.ShelfStatus')
-            #
-            # clean_reviewer_ratings = []
-            # for raw_ratings in raw_reviewer_ratings:
-            #     new_ratings = raw_ratings.find_elements(By.CSS_SELECTOR, 'span.RatingStars.RatingStars__small')
-            #     for clean_ratings in new_ratings:
-            #         clean_reviewer_ratings.append(clean_ratings)
+            print('-------scraping data-----')
+
+            # on the first and second page, the reviews have different selector
+            if self.page_count == 0:
+                review_text = self.driver.find_elements(By.CSS_SELECTOR,
+                                                        '#ReviewsSection .Formatted')
+            elif self.page_count == 1:
+                review_text = self.driver.find_elements(By.CLASS_NAME,
+                                                        'Formatted')
+
+            reviewer_name = self.driver.find_elements(By.CLASS_NAME,
+                                                              'ReviewerProfile__name')
+            reviewer_stats = self.driver.find_elements(By.CLASS_NAME,
+                                                               'ReviewerProfile__meta')
+            reviewer_ratings_div = self.driver.find_elements(By.CSS_SELECTOR,
+                                                                     'div.ShelfStatus')
+            review_text_like_div=self.driver.find_elements(By.CSS_SELECTOR,
+                                                           'section.ReviewCard__content')
 
 
-            for review in review_text:
-                print(review.text)
-        elif self.page_count == 1:
-            review_text = self.driver.find_elements(By.CLASS_NAME,
-                                                    'Formatted')
-            for review in review_text:
-                print(review.text)
 
-        #
-        # print('----ADDING TO DICTIONARY----')
-        # for (name, stats, ratings, text_likes, reviewer_comment) in zip(reviewer_name, reviewer_stats,
-        #                                                                 clean_reviewer_ratings, review_text_likes,
-        #                                                                 review_text):
-        #     book_review_data["reviewer_name"].append(name.text)
-        #     book_review_data["reviewer_stats"].append(stats.text)
-        #     book_review_data["reviewer_ratings"].append(ratings.get_attribute('aria-label'))
-        #     book_review_data["review_text_likes"].append(text_likes.text)
-        #     book_review_data["review_text"].append(reviewer_comment.text)
 
-        print(f'-------DONE SCRAPING DATA FOR THE {self.page_count} PAGE')
-        # df = pd.DataFrame(book_review_data)
-        # self.append_data_to_file(self.book_name, df)
+            #to handle nan values for ratings given
+            reviewer_ratings = []
+            for ratings in reviewer_ratings_div:
+                print('------')
+                try:
+                    stars=ratings.find_element(By.CSS_SELECTOR, 'span.RatingStars.RatingStars__small')
+                    stars_given=stars.get_attribute('aria-label')
+                    print(stars_given)
+                    reviewer_ratings.append(stars_given)
+                except:
+                    print('---stars not given---')
+                    reviewer_ratings.append('None')
+                    pass
+
+            #to handle nan values for reviews that doesnt have likes
+            review_text_like=[]
+            for like in review_text_like_div:
+                try:
+                    comment_like=like.find_element(By.CSS_SELECTOR,
+                                                   'div.SocialFooter__statsContainer')
+                    comment_like=comment_like.text
+                    review_text_like.append(comment_like)
+                    print(comment_like)
+                except:
+                    review_text_like.append('None')
+                    print('none given')
+                    pass
+
+
+
+
+            reviewer_name=list(map(lambda name:name.text,reviewer_name))
+            review_text=list(map(lambda text:text.text,review_text))
+            reviewer_stats=list(map(lambda stats:stats.text,reviewer_stats))
+
+            data=pd.DataFrame(zip(reviewer_name,review_text,reviewer_stats,reviewer_ratings,review_text_like),
+                              columns=['name','review','reviewer_stats','ratings_given','review_like'])
+
+
+            print(data)
+            data.to_csv(f'{self.book_name}.CSV', mode='a',index=False)
+
+
+
 
     def scroll_to_bottom_of_page(self):
         print('------SCROLLING TO THE BOTTOM OF THE PAGE-----')
@@ -142,7 +163,6 @@ class Goodreadscraper():
             self.page_count+=1
             print('----NOW NEW URL IS -----: ', self.url)
             print('-----REFRESHING DRIVER-----')
-            self.driver.refresh()
             time.sleep(5)
             self.scroll_to_bottom_of_page()
             time.sleep(5)
@@ -164,5 +184,5 @@ class Goodreadscraper():
         # with open(f'{book_Name}.json', 'w') as json_file:
         #     json.dump(dict, json_file)
         #     json_file.close()
-        # dict.to_csv(f'{book_Name}.CSV',mode='a')
+        dict.to_csv(f'{book_Name}.CSV',mode='a')
         time.sleep(5)

@@ -14,10 +14,12 @@ class Goodreadscraper():
 
     """
 
-    def __init__(self, id: str, book_name: str):
+    def __init__(self, url: str, book_name: str, language: str):
+
+        self.url = url
         self.book_name = book_name
         self.page_count = 1
-        self.url = f'https://www.goodreads.com/book/show/{id}{book_name}'
+        self.language=language
         self.chromeoption = webdriver.ChromeOptions()
         self.chromeoption.add_experimental_option('excludeSwitches',
                                                   ['enable-automation'])
@@ -28,12 +30,11 @@ class Goodreadscraper():
         self.driver = webdriver.Chrome(options=self.chromeoption)
         self.driver.get(self.url)
 
-        logging.basicConfig(filename="newfile.txt",
+        logging.basicConfig(filename="logs2.txt",
                             level=logging.DEBUG,
                             format='%(asctime)s %(message)s',
                             filemode='a')
         self.logger = logging.getLogger()
-
 
     def close_popup_button(self) -> None:
 
@@ -42,15 +43,28 @@ class Goodreadscraper():
         """
         try:
             self.logger.info('--CLICKING ON POPUP BUTTON--')
-            #find the close popup button and click it
+            # find the close popup button and click it
             close_popup_button = self.driver.find_element(By.CSS_SELECTOR, 'i.Icon.CloseIcon')
             self.driver.execute_script("arguments[0].click();", close_popup_button)
         except NoSuchElementException:
-            self.logger.info('--POP UP BUTTON NOT AVALAIBLE--')
+            self.logger.info('--POP UP BUTTON NOT AVAILABLE--')
             pass
         except ElementNotInteractableException:
             self.logger.info('--POP UP BUTTON CANNOT BE CLICKED--')
             pass
+
+        time.sleep(3)
+        try:
+            remove_english_filter_button=self.driver.find_element(By.CSS_SELECTOR,'I.Icon.XCircleIcon')
+            self.driver.execute_script("arguments[0].click();", remove_english_filter_button)
+        except NoSuchElementException:
+            self.logger.info('--ENGLISH FILTER BUTTON NOT AVAILABLE--')
+            pass
+        except ElementNotInteractableException:
+            self.logger.info('--ENGLISH FILTER CANNOT BE CLICKED--')
+            pass
+
+
 
 
     def scroll_to_bottom_of_page(self) -> None:
@@ -65,41 +79,35 @@ class Goodreadscraper():
           If on page 2, then it will keep scrolling to the very bottom of the page and scrape all data.
         """
 
-
         self.logger.info('------SCROLLING TO THE BOTTOM OF THE PAGE-----')
-        #get the initial height of page
+        # get the initial height of page
         last_height = self.driver.execute_script("return document.body.scrollHeight")
 
-        #keep scrolling to the bottom of the page
+        # keep scrolling to the bottom of the page
         while True:
-            #scroll to the bottom of the page and will render more content, hence increasing page height
+            # scroll to the bottom of the page to render more content, hence increasing page height
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(3)
-            #get the current height of page
+            # get the current height of page
             current_height = self.driver.execute_script("return document.body.scrollHeight")
 
-            #if at the bottom of the page and on page 1
+            # if at the bottom of the page and on page 1
             if current_height == last_height and self.page_count == 1:
                 self.logger.info(f'------ DONE SCROLLING TO THE BOTTOM OF THE {self.page_count} PAGE-----')
                 time.sleep(5)
-                self.scrape_data()
-                self.click_more_review_button()
                 break
-            #if at the bottom of the page and on page 2
+            # if at the bottom of the page and on page 2
             elif current_height == last_height and self.page_count == 2:
-                #try clicking on 'Show more reviews' button
+                # try clicking on 'Show more reviews' button
                 try:
-                    self.logger.info(f'------ DONE SCROLLING TO THE BOTTOM OF {self.page_count} PAGE-----')
                     time.sleep(5)
                     self.click_more_review_button()
-                #if button is not available means at the very bottom of the page
+                # if button is not available means at the very bottom of the page
                 except:
-                    print(f'------ DONE SCROLLING TO THE BOTTOM OF {self.page_count} PAGE-----')
                     self.logger.info(f'------ DONE SCROLLING TO THE BOTTOM OF {self.page_count} PAGE-----')
-                    self.scrape_data()
+                    time.sleep(5)
                     break
             last_height = current_height
-
 
     def click_more_review_button(self) -> None:
         """
@@ -120,18 +128,15 @@ class Goodreadscraper():
             self.url = self.driver.current_url
             self.page_count += 1
             time.sleep(5)
-            self.scroll_to_bottom_of_page()
         elif self.page_count == 2:
             self.logger.info('-------CLICKING ON MORE REVIEW BUTTON-----')
 
             time.sleep(5)
-            show_more_review_button = self.driver.find_element(By.XPATH,
-                                                               '//*[@id="__next"]/div/main/div[1]/div[2]/div[4]/div['
-                                                               '5]/div/button')
+            show_more_review_button = self.driver.find_element(By.CSS_SELECTOR,
+                                                               'button.Button.Button--secondary.Button--small')
 
             self.driver.execute_script("arguments[0].click();", show_more_review_button)
             self.logger.info('----CLICKING ON MORE REVIEWS----')
-            self.scroll_to_bottom_of_page()
 
     def scrape_data(self) -> None:
 
@@ -162,7 +167,7 @@ class Goodreadscraper():
         review_text_like_div = self.driver.find_elements(By.CSS_SELECTOR,
                                                          'section.ReviewCard__content')
 
-        #handle nan values for ratings given
+        # handle nan values for ratings given
         reviewer_ratings = []
         for ratings in reviewer_ratings_div:
             try:
@@ -174,7 +179,7 @@ class Goodreadscraper():
                 reviewer_ratings.append('None')
                 pass
 
-        #handle nan values for reviews that doesnt have likes
+        # handle nan values for reviews that doesnt have likes
         review_text_like = []
         for like in review_text_like_div:
             try:
@@ -187,28 +192,39 @@ class Goodreadscraper():
                 self.logger.info('likes not given')
                 pass
 
-
         reviewer_name = list(map(lambda name: name.text, reviewer_name))
         review_text = list(map(lambda text: text.text, review_text))
         reviewer_stats = list(map(lambda stats: stats.text, reviewer_stats))
-        #create dataframe from list
         data = pd.DataFrame(zip(reviewer_name, review_text, reviewer_stats, reviewer_ratings, review_text_like),
                             columns=['name', 'review', 'reviewer_stats', 'ratings_given', 'review_like'])
 
         print(data)
-        #save data to csv
+        # save data to csv
         self.save_data(data)
 
-
-    def save_data(self,data: pd.DataFrame) -> None:
+    def save_data(self, data: pd.DataFrame) -> None:
         """
         Save data to csv
         :param data: Pandas dataframe
 
         """
         if self.page_count == 1:
-            data.to_csv(f'{self.book_name}.CSV', mode='a', index=False, encoding='utf-8')
+            data.to_csv(f'raw_data/{self.language}/{self.book_name}.CSV', mode='a', index=False, encoding='utf-8')
         elif self.page_count == 2:
-            data.to_csv(f'{self.book_name}.CSV', mode='a', index=False, header=False, encoding='utf-8')
+            data.to_csv(f'raw_data/{self.language}/{self.book_name}.CSV', mode='a', index=False, header=False, encoding='utf-8')
 
         self.logger.info('---DONE SAVING TO CSV--')
+
+
+    def scrape_first_page(self):
+        self.close_popup_button()
+        self.scroll_to_bottom_of_page()
+        self.scrape_data()
+        self.click_more_review_button()
+
+
+    def scrape_second_page(self):
+        self.close_popup_button()
+        self.scroll_to_bottom_of_page()
+        self.scrape_data()
+

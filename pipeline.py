@@ -11,8 +11,7 @@ import io
 import pandas as pd
 from pandera import Column, DataFrameSchema, Check, Index
 import numpy as np
-from transformation import get_num_author_books, get_num_author_followers, get_num_reviewer_reviews, \
-    get_num_reviewer_followers
+from transformation import *
 
 config_file_path = 'config.ini'
 config = configparser.ConfigParser()
@@ -140,6 +139,13 @@ def preprocess_data():
 
     df['reviewer_followers'] = df['reviewer_stats'].apply(
         lambda reviewer: get_num_reviewer_followers(reviewer) if not (reviewer.lower().startswith('author')) else None)
+
+    df['ratings_given_out_of_5'] = df['ratings_given'].apply(
+        lambda rating: get_ratings(rating) if rating.lower().startswith('rating') else None)
+
+    df['review_likes'] = df['review_like'].apply(lambda review: get_review_likes(review))
+
+    df['review_comments'] = df['review_like'].apply(lambda comment: get_review_comments(comment))
 
     print(df)
     df.to_csv('preprocess_stats_data.csv', index=False)

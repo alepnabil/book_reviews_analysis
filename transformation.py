@@ -1,3 +1,11 @@
+from langdetect import detect, DetectorFactory
+from nltk.corpus import stopwords
+import spacy
+from spacytextblob.spacytextblob import SpacyTextBlob
+
+stop = stopwords.words('english')
+
+
 def get_num_author_books(author):
     num_author_books = author.split('Author')[1].split('book')[0]
     return num_author_books
@@ -32,6 +40,17 @@ def get_num_reviewer_followers(reviewer):
         followers = None
 
     return followers
+
+
+def multiply_followers(follower):
+    if follower is None:
+        pass
+    elif 'k' in follower:
+        follower = float(follower.strip('k'))
+        follower = follower * 1000
+    else:
+        follower = follower
+    return follower
 
 
 def get_ratings(rating):
@@ -96,3 +115,50 @@ def get_review_comments(comment):
         comment = None
 
     return comment
+
+
+def classify_language(review):
+    DetectorFactory.seed = 0
+    try:
+        return detect(review)
+    except:
+        return 'None'
+
+
+def calculate_sentiment_score(df):
+    language = df['language']
+    review = df['clean_review']
+
+    if language == 'es':
+        model = spacy.load('es_dep_news_trf')
+        model.add_pipe('spacytextblob')
+    elif language == 'pt':
+        model = spacy.load('pt_core_news_lg')
+        model.add_pipe('spacytextblob')
+    elif language == 'it':
+        model = spacy.load('it_core_news_lg')
+        model.add_pipe('spacytextblob')
+    elif language == 'fr':
+        model = spacy.load('fr_dep_news_trf')
+        model.add_pipe('spacytextblob')
+    elif language == 'de':
+        model = spacy.load('de_dep_news_trf')
+        model.add_pipe('spacytextblob')
+    else:
+        model = spacy.load('en_core_web_trf')
+        model.add_pipe('spacytextblob')
+
+    doc = model(review)
+    sentiment = doc._.blob.polarity
+    sentiment = round(sentiment, 2)
+    return sentiment
+
+
+def classify_sentiment(score):
+    if score > 0:
+        sentiment = 'positive'
+    elif score == 0:
+        sentiment = 'neutral'
+    else:
+        sentiment = 'negative'
+    return sentiment

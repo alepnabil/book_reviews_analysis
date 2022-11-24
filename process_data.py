@@ -35,9 +35,10 @@ def preprocess_data(df):
 
     df['sentiment_score'] = df.apply(lambda row: calculate_sentiment_score(row), axis=1)
 
+    print('classify sentiment')
     df['sentiment'] = df['sentiment_score'].apply(classify_sentiment)
+    print('done classify sentiment')
 
-    print(df)
     # df.to_csv('clean_data_spacy_sentiment_24102022.csv', index=False)
     return df
 

@@ -30,7 +30,6 @@ def column_type_validation(df):
             "sentiment": Column(object)
         })
         validated_df = schema.validate(df)
-        print(validated_df)
     except SchemaErrors as err:
         return err.failure_cases
 

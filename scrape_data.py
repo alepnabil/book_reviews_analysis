@@ -5,10 +5,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
+import chromedriver_autoinstaller
+
+chromedriver_autoinstaller.install()
 
 
 class Goodreadscraper():
-
     """
     Scraper that will navigate to 2 pages on Goodreads to scrape book reviews
 
@@ -19,7 +21,7 @@ class Goodreadscraper():
         self.url = url
         self.book_name = book_name
         self.page_count = 1
-        self.language=language
+        self.language = language
         self.chromeoption = webdriver.ChromeOptions()
         self.chromeoption.add_experimental_option('excludeSwitches',
                                                   ['enable-automation'])
@@ -55,7 +57,7 @@ class Goodreadscraper():
 
         time.sleep(3)
         try:
-            remove_english_filter_button=self.driver.find_element(By.CSS_SELECTOR,'I.Icon.XCircleIcon')
+            remove_english_filter_button = self.driver.find_element(By.CSS_SELECTOR, 'I.Icon.XCircleIcon')
             self.driver.execute_script("arguments[0].click();", remove_english_filter_button)
         except NoSuchElementException:
             self.logger.info('--ENGLISH FILTER BUTTON NOT AVAILABLE--')
@@ -63,9 +65,6 @@ class Goodreadscraper():
         except ElementNotInteractableException:
             self.logger.info('--ENGLISH FILTER CANNOT BE CLICKED--')
             pass
-
-
-
 
     def scroll_to_bottom_of_page(self) -> None:
         """
@@ -149,6 +148,10 @@ class Goodreadscraper():
         """
 
         self.logger.info('--SCRAPING DATA--')
+        book_author = self.driver.find_element(By.CLASS_NAME,
+                                               'ContributorLink__name')
+        book_author=book_author.text
+
         # on the first and second page, the reviews have different selector
         if self.page_count == 1:
             review_text = self.driver.find_elements(By.CSS_SELECTOR,
@@ -197,8 +200,7 @@ class Goodreadscraper():
         reviewer_stats = list(map(lambda stats: stats.text, reviewer_stats))
         data = pd.DataFrame(zip(reviewer_name, review_text, reviewer_stats, reviewer_ratings, review_text_like),
                             columns=['name', 'review', 'reviewer_stats', 'ratings_given', 'review_like'])
-
-        print(data)
+        data['book_author'] = book_author
         # save data to csv
         self.save_data(data)
 
@@ -209,12 +211,12 @@ class Goodreadscraper():
 
         """
         if self.page_count == 1:
-            data.to_csv(f'raw_data/{self.language}/{self.book_name}.CSV', mode='a', index=False, encoding='utf-8')
+            data.to_csv(f'raw_data/{self.language}/{self.book_name}.csv', mode='a', index=False, encoding='utf-8')
         elif self.page_count == 2:
-            data.to_csv(f'raw_data/{self.language}/{self.book_name}.CSV', mode='a', index=False, header=False, encoding='utf-8')
+            data.to_csv(f'raw_data/{self.language}/{self.book_name}.csv', mode='a', index=False, header=False,
+                        encoding='utf-8')
 
         self.logger.info('---DONE SAVING TO CSV--')
-
 
     def scrape_first_page(self):
         self.close_popup_button()
@@ -222,9 +224,7 @@ class Goodreadscraper():
         self.scrape_data()
         self.click_more_review_button()
 
-
     def scrape_second_page(self):
         self.close_popup_button()
         self.scroll_to_bottom_of_page()
         self.scrape_data()
-

@@ -1,17 +1,17 @@
 import time
-
 from scrape_data import Goodreadscraper
 import boto3
-import os
 from botocore.exceptions import ClientError
 import logging
 from pathlib import Path
 import configparser
 import io
-import pandas as pd
-from pandera import Column, DataFrameSchema, Check, Index
+from io import StringIO
+
 import numpy as np
-from transformation import *
+
+from process_data import *
+from redshift_functions import *
 
 config_file_path = 'config.ini'
 config = configparser.ConfigParser()
@@ -22,7 +22,7 @@ s3_access_key_id = config['s3']['access_key_id']
 s3_secret_access_key = config['s3']['secret_access_key']
 
 
-def upload_to_s3():
+def upload_to_s3(parent_folder: str):
     logging.basicConfig(filename="s3_logs.txt",
                         level=logging.DEBUG,
                         format='%(asctime)s %(message)s',
@@ -32,8 +32,7 @@ def upload_to_s3():
     client = boto3.client('s3',
                           aws_access_key_id=s3_access_key_id,
                           aws_secret_access_key=s3_secret_access_key)
-
-    src_dir = Path("raw_data")
+    src_dir = Path(f'{parent_folder}')
     files_coll = src_dir.glob("*/*")
 
     try:
@@ -41,12 +40,12 @@ def upload_to_s3():
             folder = one_file.parent.name
             if folder == "malay":
                 upload_file_bucket = 'book-reviews-analysis'
-                upload_file_key = 'raw_data/malay/' + str(one_file.name)
+                upload_file_key = f'{parent_folder}/malay/' + str(one_file.name)
                 client.upload_file(str(one_file), upload_file_bucket, upload_file_key)
                 logger.info('--DONE UPLOADING FILE TO BUCKET--')
             elif folder == 'english':
                 upload_file_bucket = 'book-reviews-analysis'
-                upload_file_key = 'raw_data/english/' + str(one_file.name)
+                upload_file_key = f'{parent_folder}/english/' + str(one_file.name)
                 client.upload_file(str(one_file), upload_file_bucket, upload_file_key)
                 logger.info('--DONE UPLOADING FILE TO BUCKET--')
     except ClientError as e:
@@ -89,6 +88,7 @@ def check_files_in_s3():
 def load_data_from_s3(language: str):
     df = []
     files_list = []
+    files_name = []
 
     bucket_name = 'book-reviews-analysis'
     s3 = boto3.resource('s3',
@@ -96,110 +96,52 @@ def load_data_from_s3(language: str):
                         aws_secret_access_key=s3_secret_access_key)
     book_review_analysis_bucket = s3.Bucket(bucket_name)
 
-    for file in book_review_analysis_bucket.objects.filter(Prefix=f'raw_data/{language}'):
+    # get all files in the raw data folder
+    for file in book_review_analysis_bucket.objects.filter(Prefix=f'raw_data/{language}').all():
+        curr_file_name = file.key
+        curr_file_name = curr_file_name.split("/")[2]
+
         file_name = file.key
-        if file_name.endswith('.CSV'):
+        if file_name.endswith('.CSV') and curr_file_name.endswith('.CSV'):
             files_list.append(file_name)
+            files_name.append(curr_file_name)
         else:
             pass
-
-    for file in files_list:
-        obj = s3.Object(bucket_name, file)
-        data = obj.get()['Body'].read()
-        df.append(pd.read_csv(io.BytesIO(data), header=0, delimiter=",", low_memory=False))
 
     new_df = pd.DataFrame(
         columns=['name', 'review', 'reviewer_stats', 'ratings_given', 'review_like']
     )
 
-    for data in df:
-        temp_df = pd.DataFrame(data=data)
-        new_df = pd.DataFrame(np.concatenate([new_df.values, temp_df.values]),
-                              columns=new_df.columns)
-
-    return new_df
-
-
-def preprocess_data():
-    df = load_data_from_s3('english')
-
-    print('--preprocessing author columns---')
-    # drop rows which have no reviews
-    df = df[df['review'].notna()]
-    # preprocess review stats columns
-    df['author'] = df['reviewer_stats'].str.startswith('Author')
-    df['num_author_books'] = df['reviewer_stats'].apply(
-        lambda author: get_num_author_books(author) if author.lower().startswith('author') else None)
-
-    df['num_author_followers'] = df['reviewer_stats'].apply(
-        lambda author: get_num_author_followers(author) if author.lower().startswith('author') else None)
-
-    df['reviewer_reviews'] = df['reviewer_stats'].apply(
-        lambda reviewer: get_num_reviewer_reviews(reviewer) if not (reviewer.lower().startswith('author')) else None)
-
-    df['reviewer_followers'] = df['reviewer_stats'].apply(
-        lambda reviewer: get_num_reviewer_followers(reviewer) if not (reviewer.lower().startswith('author')) else None)
-
-    df['reviewer_followers'] = df['reviewer_followers'].apply(lambda follower: multiply_followers(follower))
-
-    df['ratings_given_out_of_5'] = df['ratings_given'].apply(
-        lambda rating: get_ratings(rating) if rating.lower().startswith('rating') else None)
-
-    df['review_likes'] = df['review_like'].apply(lambda review: get_review_likes(review))
-
-    df['review_comments'] = df['review_like'].apply(lambda comment: get_review_comments(comment))
-
-    df['language'] = df['review'].apply(classify_language)
-
-    df['clean_review'] = df['review'].apply(lambda x: ' '.join(review for review in x.split() if review not in stop))
-
-    df['sentiment_score'] = df.apply(lambda row: calculate_sentiment_score(row), axis=1)
-
-    df['sentiment'] = df['sentiment_score'].apply(classify_sentiment)
-
-    print(df)
-    # df.to_csv('clean_data_spacy_sentiment_24102022.csv', index=False)
-    data_conversion(df)
-
-def data_conversion(df):
-    df = df.drop(['reviewer_stats', 'ratings_given', 'review_like'], axis=1).copy()
-
-    """
-    columns reviewer reviews and followers will be in string 
-    since some of them are in thousands (1,200)-->have commas
-    """
-    df['reviewer_reviews'] = df['reviewer_reviews'].str.replace(',', '')
-    df['reviewer_reviews'] = df['reviewer_reviews'].astype(float).astype("Int32")
-
-    df['reviewer_followers'] = df['reviewer_followers'].str.replace(',', '')
-    df['reviewer_followers'] = df['reviewer_followers'].astype(float).astype("Int32")
-
-    df['num_author_books'] = df['num_author_books'].astype(float).astype("Int32")
-
-    df['num_author_followers'] = df['num_author_followers'].astype(float).astype("Int32")
-
-    df['ratings_given_out_of_5'] = df['ratings_given_out_of_5'].astype(float).astype("Int8")
-
-    df['review_likes'] = df['review_likes'].astype(float).astype("Int32")
-
-    df['review_comments'] = df['review_comments'].astype(float).astype("Int32")
+    # for every file, preprocess the files
+    for file, curr_file_name in zip(files_list, files_name):
+        obj = s3.Object(bucket_name, file)
+        data = obj.get()['Body'].read()
+        df.append(pd.read_csv(io.BytesIO(data), header=0, delimiter=",", low_memory=False))
+        for data in df:
+            temp_df = pd.DataFrame(data=data)
+            new_df = pd.DataFrame(np.concatenate([new_df.values, temp_df.values]),
+                                  columns=new_df.columns)
+            print(curr_file_name)
+            process_data(new_df,curr_file_name,language)
 
 
+def process_data(df,curr_file_name,language):
 
-
-
-
+    df = preprocess_data(df)
+    converted_df = data_conversion(df)
+    validated_data = data_validation(converted_df)
+    validated_data.to_csv(f'clean_data/{language}/{curr_file_name}',index=False)
 
 
 def main():
-    # scraper = Goodreadscraper('https://www.goodreads.com/book/show/91953.Leviathan', 'bug_testing', 'malay')
-    # scraper.scrape_first_page()
-    # scraper.scrape_second_page()
+    scraper = Goodreadscraper('https://www.goodreads.com/book/show/448836.Second_Treatise_of_Government?ref=nav_sb_ss_1_13', 'second_treatise_of_goverment', 'english')
+    scraper.scrape_first_page()
+    scraper.scrape_second_page()
 
-    # upload_to_s3()
-    # check_files_in_s3()
-    # load_data_from_s3('english')
-    preprocess_data()
+
+    load_data_from_s3('malay')
+    upload_to_s3('clean_data')
+    load_data_rds('malay')
 
 
 if __name__ == '__main__':

@@ -148,17 +148,27 @@ class Goodreadscraper():
         """
 
         self.logger.info('--SCRAPING DATA--')
+        # used 7 seconds because of trial and error. With 7 seconds, managed to scrape 34/46
+
+        self.driver.implicitly_wait(7)
         book_author = self.driver.find_element(By.CLASS_NAME,
                                                'ContributorLink__name')
-        book_author=book_author.text
+        book_author = book_author.text
 
         # on the first and second page, the reviews have different selector
         if self.page_count == 1:
             review_text = self.driver.find_elements(By.CSS_SELECTOR,
                                                     '#ReviewsSection .Formatted')
+            book_name = self.driver.find_element(By.CSS_SELECTOR,
+                                                 '.Text__title1')
+            book_name = book_name.text
+
         elif self.page_count == 2:
             review_text = self.driver.find_elements(By.CLASS_NAME,
                                                     'Formatted')
+            book_name = self.driver.find_element(By.CSS_SELECTOR,
+                                                 '.H1Title')
+            book_name = book_name.text
 
         # get relevant data
         reviewer_name = self.driver.find_elements(By.CLASS_NAME,
@@ -200,7 +210,21 @@ class Goodreadscraper():
         reviewer_stats = list(map(lambda stats: stats.text, reviewer_stats))
         data = pd.DataFrame(zip(reviewer_name, review_text, reviewer_stats, reviewer_ratings, review_text_like),
                             columns=['name', 'review', 'reviewer_stats', 'ratings_given', 'review_like'])
+
         data['book_author'] = book_author
+        data['book_name'] = book_name
+
+        # shift column 'Name' to first position
+        first_column = data.pop('book_author')
+        second_column = data.pop('book_name')
+
+        # insert column using insert(position,column_name,
+        # first_column) function
+        data.insert(0, 'book_author', first_column)
+        data.insert(1, 'book_name', second_column)
+
+        data.drop_duplicates(subset=['review'],
+                           keep=False, inplace=True)
         # save data to csv
         self.save_data(data)
 

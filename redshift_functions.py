@@ -18,9 +18,9 @@ s3_access_key_id = config['s3']['access_key_id']
 s3_secret_access_key = config['s3']['secret_access_key']
 
 
-def load_data_rds(language):
+def load_data_rds(language:str,book_name:str):
 
-    print('loading into rds')
+    print('-----LOADING DATA INTO RDS-----')
     clean_data_files = []
     # get all the clean files in 'malay' folder
 
@@ -30,9 +30,11 @@ def load_data_rds(language):
                         aws_secret_access_key=s3_secret_access_key)
     book_review_analysis_bucket = s3.Bucket(bucket_name)
 
-    for file in book_review_analysis_bucket.objects.filter(Prefix=f'clean_data/{language}'):
+    for file in book_review_analysis_bucket.objects.filter(Prefix=f'clean_data/{language}/{book_name}'):
         file_name = file.key
-        if file_name.endswith('.CSV'):
+
+        print(f'----LOADING {file_name} INTO RDS----')
+        if file_name.endswith('.csv'):
             clean_data_files.append(file_name)
         else:
             pass
@@ -47,17 +49,17 @@ def load_data_rds(language):
 
     cursor = conn.cursor()
     # for every of those file in the folder, we want to append to our table
-    
+
     for file in clean_data_files:
         cursor.execute(f"""
-            
-            copy book_testing5 
+
+            copy book
             from 's3://book-reviews-analysis/{file}'
             iam_role '{iam_role}'
-            
+
             FORMAT AS CSV
             IGNOREHEADER 1
-            
+
             """)
 
     conn.commit()

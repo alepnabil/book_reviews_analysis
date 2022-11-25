@@ -1,13 +1,11 @@
-import time
 import logging
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
-import chromedriver_autoinstaller
+import time
 
-chromedriver_autoinstaller.install()
 
 
 class Goodreadscraper():
@@ -150,7 +148,7 @@ class Goodreadscraper():
         self.logger.info('--SCRAPING DATA--')
         # used 7 seconds because of trial and error. With 7 seconds, managed to scrape 34/46
 
-        self.driver.implicitly_wait(7)
+        time.sleep(7)
         book_author = self.driver.find_element(By.CLASS_NAME,
                                                'ContributorLink__name')
         book_author = book_author.text
@@ -214,15 +212,15 @@ class Goodreadscraper():
         data['book_author'] = book_author
         data['book_name'] = book_name
 
-        # shift column 'Name' to first position
+        # shift column book_author and book_name to the front
         first_column = data.pop('book_author')
         second_column = data.pop('book_name')
 
-        # insert column using insert(position,column_name,
-        # first_column) function
+
         data.insert(0, 'book_author', first_column)
         data.insert(1, 'book_name', second_column)
 
+        #dropping duplicates since scraper still doesn't scrape consistently
         data.drop_duplicates(subset=['review'],
                            keep=False, inplace=True)
         # save data to csv

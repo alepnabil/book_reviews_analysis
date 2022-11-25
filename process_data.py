@@ -1,11 +1,17 @@
 from transformation import *
 from data_validation import *
+import pandas as pd
 
 def preprocess_data(df):
 
     print('--preprocessing author columns---')
     # drop rows which have no reviews
     df = df[df['review'].notna()]
+
+    df.drop_duplicates(subset="review",
+                     keep=False, inplace=True)
+
+    print(df)
     # preprocess review stats columns
     df['author'] = df['reviewer_stats'].str.startswith('Author')
     df['num_author_books'] = df['reviewer_stats'].apply(

@@ -1,16 +1,14 @@
-from scrape_data import Goodreadscraper
-import boto3
 from botocore.exceptions import ClientError
 import logging
 from pathlib import Path
-import configparser
 import io
 import numpy as np
+import pandas as pd
 
-from process_data import *
-from redshift_functions import *
+from dags.goodread_scraper.scrape_data import Goodreadscraper
+from dags.aws_functions.redshift_functions import *
 
-config_file_path = 'config.ini'
+config_file_path = 'dags/config.ini'
 config = configparser.ConfigParser()
 config_file_path = config_file_path
 config.read(config_file_path)
@@ -154,14 +152,14 @@ def process_data(df, curr_file_name, language):
 
 
 def main():
-    # scraper = Goodreadscraper('https://www.goodreads.com/book/show/57456461-politik-untuk-pemula', 'politik_untuk_pemula', 'malay')
-    # scraper.scrape_first_page()
-    # scraper.scrape_second_page()
-    #
-    upload_to_s3('raw_data')
-    load_data_from_s3('malay', 'politik_untuk_pemula')
-    upload_to_s3('clean_data')
-    load_data_rds('malay','politik_untuk_pemula')
+    scraper = Goodreadscraper('https://www.goodreads.com/book/show/57456461-politik-untuk-pemula', 'politik_untuk_pemula', 'malay')
+    scraper.scrape_first_page()
+    scraper.scrape_second_page()
+
+    # upload_to_s3('raw_data')
+    # load_data_from_s3('malay', 'politik_untuk_pemula')
+    # upload_to_s3('clean_data')
+    # load_data_rds('malay','politik_untuk_pemula')
 
 
 if __name__ == '__main__':

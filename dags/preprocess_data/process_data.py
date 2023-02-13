@@ -1,6 +1,6 @@
 from transformation import *
-from data_validation import *
-import pandas as pd
+from dags.preprocess_data.data_validation import *
+
 
 def preprocess_data(df):
 

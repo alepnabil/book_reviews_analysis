@@ -2,10 +2,27 @@ from langdetect import detect, DetectorFactory
 from nltk.corpus import stopwords
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
+from spacy.tokens import Doc
 
-stop = stopwords.words('english')
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
+# spacy.load('en_core_web_sm')
+
+# stop = stopwords.words('english')
+
+
+# @spacy.Language.component("custom_sentiment")
+# def get_blob(doc):
+#     # your custom component code here
+#     return doc
+
+# Doc.set_extension('blob', getter=get_blob)
+
+# def custom_sentiment(doc):
+#     # custom sentiment analysis logic here
+#     return doc
+    
 def get_num_author_books(author):
     num_author_books = author.split('Author')[1].split('book')[0]
     return num_author_books
@@ -125,40 +142,57 @@ def classify_language(review):
         return 'None'
 
 
-def calculate_sentiment_score(df):
-    language = df['language']
-    review = df['clean_review']
+# def calculate_sentiment_score(df):
+#     language = df['language']
+#     review = df['clean_review']
 
-    if language == 'es':
-        model = spacy.load('es_dep_news_trf')
-        model.add_pipe('spacytextblob')
-    elif language == 'pt':
-        model = spacy.load('pt_core_news_lg')
-        model.add_pipe('spacytextblob')
-    elif language == 'it':
-        model = spacy.load('it_core_news_lg')
-        model.add_pipe('spacytextblob')
-    elif language == 'fr':
-        model = spacy.load('fr_dep_news_trf')
-        model.add_pipe('spacytextblob')
-    elif language == 'de':
-        model = spacy.load('de_dep_news_trf')
-        model.add_pipe('spacytextblob')
-    else:
-        model = spacy.load('en_core_web_trf')
-        model.add_pipe('spacytextblob')
+#     if language == 'es':
+#         model = spacy.load('es_dep_news_trf')
+#         spacy_text_blob = SpacyTextBlob('sentiment',model)
+#     elif language == 'pt':
+#         model = spacy.load('pt_core_news_lg')
+#         spacy_text_blob = SpacyTextBlob('sentiment',model)
+#     elif language == 'it':
+#         model = spacy.load('it_core_news_lg')
+#         spacy_text_blob = SpacyTextBlob('sentiment',model)
+#     elif language == 'fr':
+#         model = spacy.load('fr_dep_news_trf')
+#         spacy_text_blob = SpacyTextBlob('sentiment',model)
+#     else:
+#         model = spacy.load('en_core_web_trf')
+#         spacy_text_blob = SpacyTextBlob('sentiment',model)
+    
+#     model.add_pipe('spacytextblob',last=True)
+#     # doc = model(review)
+#     # sentiment = doc._.sentiment.polarity
+#     # sentiment = round(sentiment, 2)
+#     # return sentiment
 
-    doc = model(review)
-    sentiment = doc._.blob.polarity
-    sentiment = round(sentiment, 2)
-    return sentiment
+#     @spacy.Language.component("get_sentiment")
+#     def get_sentiment(review):
+#         doc = model(review)
+#         sentiment = doc._.sentiment.polarity
+#         sentiment = round(sentiment, 2)
+    
+#         return sentiment
+
+
+def calculate_sentiment_score(review):
+
+    vader=SentimentIntensityAnalyzer()
+    sentiment_score=vader.polarity_scores(str(review))
+
+    
+    return sentiment_score
 
 
 def classify_sentiment(score):
-    if score > 0:
+    if score >= 0.05:
         sentiment = 'positive'
-    elif score == 0:
+    elif -0.05< score <0.05:
         sentiment = 'neutral'
     else:
         sentiment = 'negative'
     return sentiment
+
+

@@ -13,9 +13,9 @@ import seaborn as sns
 
 
 
-def main_page_layout():
-        theme_selected = st.selectbox("Select a theme", ["Social contract",'Intro'])
+def main_page_layout(theme_selected):
 
+        
         first_col_width=100
         sec_col_width=100
         third_col_width=100
@@ -135,10 +135,10 @@ def main_page_layout():
         graph_col=st.columns([1,1],gap='large')
         with graph_col[0]:
                 chart = alt.Chart(sentiment_percentage_by_book_table,width=550,height=500).mark_bar().encode(
-                x=alt.X('sentiment_percentage:Q', stack='normalize'),
-                y=alt.Y('book_name:N'),
-                color=alt.Color('sentiment:N', scale=alt.Scale(scheme='set1')),
-                tooltip=['book_name', 'sentiment', 'sentiment_percentage'])
+                x=alt.X('sentiment_percentage:Q', stack='normalize',title='Sentiment percentage %'),
+                y=alt.Y('book_name:N',title='Books'),
+                color=alt.Color('sentiment:N', scale=alt.Scale(scheme='set1'),title='Sentiments'),
+                tooltip=['book_name', 'sentiment', 'sentiment_percentage'],).properties(title='Books sentiment percentage')
 
                 
                 st.altair_chart(chart)
@@ -176,19 +176,23 @@ def main_page_layout():
                         return data
         
         with graph_col[1]:
-                sentiments=['positive','neutral','negative']
+                sentiments=['Positive','Neutral','Negative']
                 selected_sentiment = st.selectbox("Select Sentiment", sentiments)
+                selected_sentiment=selected_sentiment.lower()
                 ratings_percentage_by_book_table_bubble=get_ratings_percetange_by_book_bubble(theme_selected)
                 filtered_data = ratings_percentage_by_book_table_bubble[ratings_percentage_by_book_table_bubble['sentiment'] == selected_sentiment]
                 opacity_vals = filtered_data['ratings_given_percentage'].apply(lambda x: x / 100.0 * 0.8 + 0.2)
 
-                fig = px.scatter(filtered_data, x="ratings", y="ratings_given_percentage", size="ratings_given_percentage", color="book_name", hover_data=["ratings_given_percentage"],size_max=55,width=700)
+                
+                fig = px.scatter(filtered_data, x="ratings", y="ratings_given_percentage", size="ratings_given_percentage", 
+                                 color="book_name", hover_data=["ratings_given_percentage"],
+                                 size_max=45,width=700,title='Ratings given by reviewer grouped by sentiments')
 
                 # Set the layout
                 fig.update_layout(
-                        title="Ratings given by reviewer based on sentiments",
                         xaxis_title="Ratings",
-                        yaxis_title="Sentiment %"
+                        yaxis_title="Sentiment %",
+                        xaxis=dict(range=[0, 5])
                         )
 
                         # Display the bubble chart
@@ -234,9 +238,9 @@ def main_page_layout():
 
         with graph_col[0]:
                 
-                st.write('Average ratings of books')
                 fig = px.bar(
                         avg_ratings_by_book_table,
+                        title='Books average ratings',
                         x='book_name',
                         y='average_ratings',
                         color='author',
@@ -252,11 +256,12 @@ def main_page_layout():
                         margin=dict(l=20, r=20, t=30, b=0),
                         width=600,
                         height=450,
-                        legend=dict(x=0.01, y=1.05, bgcolor='rgba(255, 255, 255, 0)', bordercolor='rgba(255, 255, 255, 0)'),
+                        legend=dict(x=0.01, y=1.0, bgcolor='rgba(255, 255, 255, 0)', bordercolor='rgba(255, 255, 255, 0)'),
 
                 )
                 st.plotly_chart(fig, theme='streamlit')
 
+        with graph_col[1]:
                 def get_language_percentage_by_book(theme_selected):
                 
                         cursor = mydb.cursor()
@@ -286,16 +291,16 @@ def main_page_layout():
 
                 language_percentage_by_book=get_language_percentage_by_book(theme_selected)
 
-        
+                
                 piechart= px.pie(language_percentage_by_book, 
                                 values='language_percentage',
-                                title=f'percentage of language',
-                                names='language'
+                                names='language',
+                                title='Language distribution'
                                 )
                 piechart.update_layout(margin=dict(l=20, r=20, t=30, b=0),width=10,height=400)
                 st.plotly_chart(piechart, use_container_width=True)
 
-        with graph_col[1]:
+        with graph_col[0]:
                 
             
 
@@ -329,6 +334,7 @@ def main_page_layout():
                 review_text_table=get_review(theme_selected)
                 temp_review=''.join(review_text_table['review'])
 
+                st.subheader("Wordcloud")
                 wordcloud = WordCloud(background_color='white').generate(temp_review)
 
                 plt.figure(figsize=(10,10))
@@ -337,18 +343,71 @@ def main_page_layout():
                 plt.show()
                 st.pyplot()
 
-       
+                st.subheader("Word frequency")
                 def words_frequency(dataframe):
 
                                 word_frequency=pd.Series(dataframe['review']).str.split(expand=True).stack().value_counts()
                                                         
-                                plt.figure(figsize=(10,12))
+                                plt.figure(figsize=(10,12.5))
                                 word_frequency[2:40].plot(kind='barh')
                                 plt.xlabel('Word frequency')
                                 plt.ylabel('Words')
                                 st.pyplot()
 
                 words_frequency(review_text_table)
+        
+        def get_total_likes_comments(theme_selected):
+                        cursor = mydb.cursor()
+                        query = f"""
+                        
+                        SELECT
+                        rf.book_name,
+                        sum(rf.review_likes) total_likes,
+                        sum(rf.review_comments) total_comments
+                        FROM
+                        review_fact_table rf
+                        JOIN
+                        book_dim_table bd ON rf.book_id = bd.book_id
+                        WHERE
+                        bd.book_theme = '{theme_selected}' 
+                        group by 1 
+
+                        
+
+                        """
+                        cursor.execute(query)
+                        data = cursor.fetchall()
+                        data=pd.DataFrame(data,columns=['book_name','total_likes','total_comments'])
+
+                        
+                        return data
+
+        books_total_likes_comments_table=get_total_likes_comments(theme_selected)
+
+
+
+        with graph_col[1]:
+              
+                fig = px.pie(books_total_likes_comments_table, values='total_likes', names='book_name', 
+                        hole=0.6, color_discrete_sequence=px.colors.qualitative.Pastel,
+                        width=600,height=500,title='Total review likes')
+
+                fig.update_traces(textinfo='percent', pull=[0.1]*len(books_total_likes_comments_table))
+
+                st.plotly_chart(fig)
+
+        with graph_col[1]:
+             
+                fig = px.pie(books_total_likes_comments_table, values='total_comments', names='book_name', 
+                        hole=0.6, color_discrete_sequence=px.colors.qualitative.Pastel,
+                        width=600, height=500,title='Total review comments')
+
+                fig.update_traces(textinfo='percent', pull=[0.1]*len(books_total_likes_comments_table))
+
+                st.plotly_chart(fig)
+
+
+                
 
         def get_non_author_reviews(theme_selected):
         
@@ -524,73 +583,3 @@ def main_page_layout():
                 st.dataframe(filtered_df,width=9000)
 
 
-
-        def get_total_likes_comments(theme_selected):
-                        cursor = mydb.cursor()
-                        query = f"""
-                        
-                        SELECT
-                        rf.book_name,
-                        sum(rf.review_likes) total_likes,
-                        sum(rf.review_comments) total_comments
-                        FROM
-                        review_fact_table rf
-                        JOIN
-                        book_dim_table bd ON rf.book_id = bd.book_id
-                        WHERE
-                        bd.book_theme = '{theme_selected}' 
-                        group by 1 
-
-                        
-
-                        """
-                        cursor.execute(query)
-                        data = cursor.fetchall()
-                        data=pd.DataFrame(data,columns=['book_name','total_likes','total_comments'])
-
-                        
-                        return data
-
-        books_total_likes_comments_table=get_total_likes_comments(theme_selected)
-
-
-        with graph_col[0]:
-                st.write('Total likes')
-                base = alt.Chart(books_total_likes_comments_table).encode(
-                theta=alt.Theta("total_likes:Q", stack=True),
-                radius=alt.Radius("total_likes", scale=alt.Scale(type="sqrt", zero=True, rangeMin=20,range=[20,70])),
-                color="book_name"
-                )
-
-                c1 = base.mark_arc(innerRadius=10, stroke="#fff")
-
-                # c2 = base.mark_text(radiusOffset=5).encode(text="total_likes:N")
-
-                radial_chart = c1 
-                # radial_chart.configure_view(
-                # stroke=None  # remove chart border
-                # )
-
-
-                # display the radial chart using streamlit
-                st.altair_chart(radial_chart)
-
-
-        with graph_col[1]:
-                st.write('Total comments')
-                base2 = alt.Chart(books_total_likes_comments_table).encode(
-                theta=alt.Theta("total_comments:Q", stack=True),
-                radius=alt.Radius("total_comments", scale=alt.Scale(type="sqrt", zero=True, rangeMin=20,range=[20,70])),
-                color="book_name",
-                )
-
-                c1_second = base2.mark_arc(innerRadius=10, stroke="#fff")
-
-                # c2_second = base.mark_text(radiusOffset=5).encode(text="book_name:N")
-
-                radial_chart_second = c1_second 
-
-                # display the radial chart using streamlit
-                st.altair_chart(radial_chart_second)
-
-                

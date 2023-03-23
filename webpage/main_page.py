@@ -10,17 +10,26 @@ import plotly.graph_objs as go
 import numpy as np 
 import requests
 import seaborn as sns
+from book_intro import *
 
 
 
 def main_page_layout(theme_selected):
 
         
+        
         first_col_width=100
         sec_col_width=100
         third_col_width=100
         fourth_col_width=100
         col1,col2,col3,col4= st.columns([first_col_width,sec_col_width,third_col_width,fourth_col_width])
+
+        if theme_selected=='Social contract':
+                st.text_area(f'This the page for {theme_selected} theme',social_contract_theme,height=100)
+        elif theme_selected=='Communism':
+                st.text_area(f'This the page for {theme_selected} theme',communism_theme,height=100)
+        elif theme_selected=='Utilitarianism':
+                st.text_area(f'This the page for {theme_selected} theme',utilitarianism_theme,height=100)
 
         def get_count_of_books(theme_selected):
                 cursor = mydb.cursor()
@@ -135,15 +144,17 @@ def main_page_layout(theme_selected):
         graph_col=st.columns([1,1],gap='large')
         with graph_col[0]:
                 chart = alt.Chart(sentiment_percentage_by_book_table,width=550,height=500).mark_bar().encode(
-                x=alt.X('sentiment_percentage:Q', stack='normalize',title='Sentiment percentage %'),
+                x=alt.X('sentiment_percentage:Q', stack='normalize',title='Percentage (%)'),
                 y=alt.Y('book_name:N',title='Books'),
                 color=alt.Color('sentiment:N', scale=alt.Scale(scheme='set1'),title='Sentiments'),
-                tooltip=['book_name', 'sentiment', 'sentiment_percentage'],).properties(title='Books sentiment percentage')
+                tooltip=[
+                        alt.Tooltip('book_name:N', title='Book'),
+                        alt.Tooltip('sentiment:N', title='Sentiment'),
+                        alt.Tooltip('sentiment_percentage:Q', title='Percentage', format='.2f') 
+                ]
+                ).properties(title='Books sentiment percentage')
 
-                
                 st.altair_chart(chart)
-
-
 
 
         def get_ratings_percetange_by_book_bubble(theme_selected):
@@ -186,7 +197,8 @@ def main_page_layout(theme_selected):
                 
                 fig = px.scatter(filtered_data, x="ratings", y="ratings_given_percentage", size="ratings_given_percentage", 
                                  color="book_name", hover_data=["ratings_given_percentage"],
-                                 size_max=45,width=700,title='Ratings given by reviewer grouped by sentiments')
+                                 size_max=45,width=700,title='Ratings given by reviewer grouped by sentiments',
+                                 labels={'book_name':'Book name','ratings':'Ratings','ratings_given_percentage':'Percentage'})
 
                 # Set the layout
                 fig.update_layout(
@@ -196,6 +208,7 @@ def main_page_layout(theme_selected):
                         )
 
                         # Display the bubble chart
+                st.caption('_0 = No ratings were given_')
                 st.plotly_chart(fig)
 
 
@@ -247,16 +260,16 @@ def main_page_layout(theme_selected):
                         barmode='group',
                         text='average_ratings',
                         labels={
-                        'book_name': 'Book Name',
-                        'average_ratings': 'Average Rating',
+                        'book_name': 'Book name',
+                        'average_ratings': 'Average rating',
                         'author': 'Author',
                         },
                 )
                 fig.update_layout(
                         margin=dict(l=20, r=20, t=30, b=0),
-                        width=600,
+                        width=550,
                         height=450,
-                        legend=dict(x=0.01, y=1.0, bgcolor='rgba(255, 255, 255, 0)', bordercolor='rgba(255, 255, 255, 0)'),
+                        legend=dict(x=1, y=1.0, bgcolor='rgba(255, 255, 255, 0)', bordercolor='rgba(255, 255, 255, 0)'),
 
                 )
                 st.plotly_chart(fig, theme='streamlit')
@@ -295,8 +308,10 @@ def main_page_layout(theme_selected):
                 piechart= px.pie(language_percentage_by_book, 
                                 values='language_percentage',
                                 names='language',
-                                title='Language distribution'
-                                )
+                                title='Language distribution',
+                                labels= {'language': 'Language',
+                                'language_percentage': 'Percentage % '
+                                })
                 piechart.update_layout(margin=dict(l=20, r=20, t=30, b=0),width=10,height=400)
                 st.plotly_chart(piechart, use_container_width=True)
 
@@ -390,7 +405,9 @@ def main_page_layout(theme_selected):
               
                 fig = px.pie(books_total_likes_comments_table, values='total_likes', names='book_name', 
                         hole=0.6, color_discrete_sequence=px.colors.qualitative.Pastel,
-                        width=600,height=500,title='Total review likes')
+                        width=600,height=500,title='Total review likes',
+                        labels={'book_name':'Book name',
+                                'total_likes':'Total likes'})
 
                 fig.update_traces(textinfo='percent', pull=[0.1]*len(books_total_likes_comments_table))
 
@@ -400,7 +417,9 @@ def main_page_layout(theme_selected):
              
                 fig = px.pie(books_total_likes_comments_table, values='total_comments', names='book_name', 
                         hole=0.6, color_discrete_sequence=px.colors.qualitative.Pastel,
-                        width=600, height=500,title='Total review comments')
+                        width=600, height=500,title='Total review comments',
+                        labels={'book_name':'Book name',
+                                'total_comments':'Total comments'})
 
                 fig.update_traces(textinfo='percent', pull=[0.1]*len(books_total_likes_comments_table))
 

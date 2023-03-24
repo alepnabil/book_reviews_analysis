@@ -186,31 +186,32 @@ def individual_book_layout(book_name):
                         """
 
 
-                if filter=="Review with top likes":
+                if filter=="Review with the most likes":
                         cursor.execute(query1)
                         data = cursor.fetchall()
                         data=pd.DataFrame(data,columns=['name','review','ratings_given_out_of_5','review_likes','sentiment'])
-                elif filter=="Review with top comments":
+                elif filter=="Review with the most comments":
                         cursor.execute(query2)
                         data = cursor.fetchall()
                         data=pd.DataFrame(data,columns=['name','review','ratings_given_out_of_5','review_comments','sentiment'])
-                elif filter=="Reviewer with top reviews":
+                elif filter=="Reviewer with the most reviews":
                         cursor.execute(query3)
                         data = cursor.fetchall()
                         data=pd.DataFrame(data,columns=['name','review','ratings_given_out_of_5','reviewer_reviews','sentiment'])
-                elif filter=="Reviewer with top followers":
+                elif filter=="Reviewer with the most followers":
                         cursor.execute(query4)
                         data = cursor.fetchall()
                         data=pd.DataFrame(data,columns=['name','review','ratings_given_out_of_5','reviewer_followers','sentiment'])
-                elif filter== "Author review with top followers":
+                elif filter== "Author review with the most followers":
                         cursor.execute(query5)
                         data=cursor.fetchall()
                         data=pd.DataFrame(data,columns=['name','review','ratings_given_out_of_5','num_author_followers','sentiment'])
-                elif filter=="Author review with top books":
+                elif filter=="Author review with the most books":
                         cursor.execute(query6)
                         data=cursor.fetchall()
                         data=pd.DataFrame(data,columns=['name','review','ratings_given_out_of_5','num_author_bookssss','sentiment'])
-                
+
+
                 return data
 
 
@@ -238,26 +239,26 @@ def individual_book_layout(book_name):
 
         options = st.selectbox(
         'Select a sample review',
-        ['Review with top likes', 'Review with top comments', 
-        'Reviewer with top reviews', 'Reviewer with top followers',
-        'Author review with top followers', 'Author review with top books'],
+        ['Review with the most likes', 'Review with the most comments', 
+        'Reviewer with the most reviews', 'Reviewer with the most followers',
+        'Author review with the most followers', 'Author review with the most books'],
         )
 
 
 
 
 
-        if options == "Review with top likes":
+        if options == "Review with the most likes":
                 review_with_top_likes_counter=True
-        elif options == "Review with top comments":
+        elif options == "Review with the most comments":
                 review_with_top_comments_counter=True
-        elif options == "Reviewer with top reviews":
+        elif options == "Reviewer with the most reviews":
                 reviewer_with_top_reviews_counter=True
-        elif options == "Reviewer with top followers":
+        elif options == "Reviewer with with the most followers":
                 reviewer_with_top_followers_counter=True
-        elif options == "Author review with top followers":
+        elif options == "Author review with the most followers":
                 author_with_top_books_counter=True
-        elif options == "Author review with top books":
+        elif options == "Author review with the most books":
                 author_with_top_followers_counter=True
 
 

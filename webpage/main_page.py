@@ -260,7 +260,7 @@ def main_page_layout(theme_selected):
                         barmode='group',
                         text='average_ratings',
                         labels={
-                        'book_name': 'Book name',
+                        'book_name': 'Book',
                         'average_ratings': 'Average rating',
                         'author': 'Author',
                         },
@@ -406,7 +406,7 @@ def main_page_layout(theme_selected):
                 fig = px.pie(books_total_likes_comments_table, values='total_likes', names='book_name', 
                         hole=0.6, color_discrete_sequence=px.colors.qualitative.Pastel,
                         width=600,height=500,title='Total review likes',
-                        labels={'book_name':'Book name',
+                        labels={'book_name':'Book',
                                 'total_likes':'Total likes'})
 
                 fig.update_traces(textinfo='percent', pull=[0.1]*len(books_total_likes_comments_table))
@@ -418,7 +418,7 @@ def main_page_layout(theme_selected):
                 fig = px.pie(books_total_likes_comments_table, values='total_comments', names='book_name', 
                         hole=0.6, color_discrete_sequence=px.colors.qualitative.Pastel,
                         width=600, height=500,title='Total review comments',
-                        labels={'book_name':'Book name',
+                        labels={'book_name':'Book',
                                 'total_comments':'Total comments'})
 
                 fig.update_traces(textinfo='percent', pull=[0.1]*len(books_total_likes_comments_table))
@@ -600,5 +600,6 @@ def main_page_layout(theme_selected):
 
         with container.container():
                 st.dataframe(filtered_df,width=9000)
+                st.caption('The table is adjustable')
 
 

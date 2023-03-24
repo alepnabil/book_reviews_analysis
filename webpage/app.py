@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-from streamlit_lottie import st_lottie
 import mysql.connector
 import plotly.express as px
 import pandas as pd
@@ -9,6 +8,7 @@ from wordcloud import WordCloud
 from indv_book_page import individual_book_layout
 from main_page import main_page_layout
 from book_intro import *
+from streamlit_lottie import st_lottie
 
 
 st.set_page_config(page_title='Book reviews analysis', layout='wide')

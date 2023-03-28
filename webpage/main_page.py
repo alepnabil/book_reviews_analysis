@@ -293,7 +293,7 @@ def main_page_layout(theme_selected):
                                         )
                                 SELECT
                                         language,
-                                        (lang_count/ (SELECT sum(lang_count) FROM T3) * 100 ) as percentage
+                                        (lang_count/ (SELECT sum(lang_count) FROM t3) * 100 ) as percentage
                                 from t3
 
                         """

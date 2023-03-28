@@ -11,7 +11,7 @@ import numpy as np
 import requests
 import seaborn as sns
 from book_intro import *
-
+from db_conn import *
 
 
 def main_page_layout(theme_selected):
@@ -71,7 +71,7 @@ def main_page_layout(theme_selected):
                         join book_dim_table bd
                         on rf.book_id=bd.book_id
 
-                        where bd.book_theme='{theme_selected}' and rd.author in (True)
+                        where bd.book_theme='{theme_selected}' and rd.author = 'True'
                 """
                 cursor.execute(query)
                 count = cursor.fetchone()[0]
@@ -89,7 +89,7 @@ def main_page_layout(theme_selected):
                         join book_dim_table bd
                         on rf.book_id=bd.book_id
 
-                        where bd.book_theme='{theme_selected}' and rd.author in (False)
+                        where bd.book_theme='{theme_selected}' and rd.author = 'False'
                 """
                 cursor.execute(query)
                 count = cursor.fetchone()[0]
@@ -227,16 +227,18 @@ def main_page_layout(theme_selected):
                         SELECT
                         bd.book_name,
                         CASE rd.author
-                        WHEN 0 THEN 'Non author'
-                        WHEN 1 THEN 'Author'
-                        ELSE 'unknown'
+                                WHEN 'True' THEN 'Author'
+                                ELSE 'Non author'
                         END AS author_type,
                         AVG(ratings_given_out_of_5) AS avg_comp
-                        FROM review_fact_table rf
-                        JOIN book_dim_table bd ON rf.book_id=bd.book_id
-                        JOIN reviewer_dim_table rd ON rd.review_id=rf.review_id
-                        WHERE bd.book_theme='{theme_selected}' AND rd.author IN (True,False)
-                        GROUP BY 1,2
+                        FROM
+                        review_fact_table rf
+                        JOIN book_dim_table bd ON rf.book_id = bd.book_id
+                        JOIN reviewer_dim_table rd ON rd.review_id = rf.review_id
+                        WHERE
+                        bd.book_theme = 'social contract' AND rd.author IN ('True', 'False')
+                        GROUP BY
+                        1, 2;
 
 
 
@@ -446,7 +448,7 @@ def main_page_layout(theme_selected):
 
                         join book_dim_table bd
                         on rf.book_id=bd.book_id
-                        where bd.book_theme='{theme_selected}' and rd.author in (False)
+                        where bd.book_theme='{theme_selected}' and rd.author = 'False'
 
                         """
                         cursor.execute(query)
@@ -471,7 +473,7 @@ def main_page_layout(theme_selected):
 
                         join book_dim_table bd
                         on rf.book_id=bd.book_id
-                        where bd.book_theme='{theme_selected}' and rd.author in (True)
+                        where bd.book_theme='{theme_selected}' and rd.author = 'True'
 
                         """
                         cursor.execute(query)

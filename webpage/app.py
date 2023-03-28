@@ -58,7 +58,7 @@ st.sidebar.caption('_It is recommended to close this sidebar for better viewing_
 # Define the pages for each option
 if selected_option == 'All themes':
     # This is the main page
-    theme_options = ['Social contract','Utilitarianism','Communism','Intro']
+    theme_options = ['Social contract','Utilitarianism','Communism']
     theme_options_selected=st.selectbox('Select theme',theme_options)        
     main_page_layout(theme_options_selected)
 

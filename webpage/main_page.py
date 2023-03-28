@@ -71,7 +71,7 @@ def main_page_layout(theme_selected):
                         join book_dim_table bd
                         on rf.book_id=bd.book_id
 
-                        where bd.book_theme='{theme_selected}' and rd.author in (TRUE,1)
+                        where bd.book_theme='{theme_selected}' and rd.author in (True)
                 """
                 cursor.execute(query)
                 count = cursor.fetchone()[0]
@@ -89,7 +89,7 @@ def main_page_layout(theme_selected):
                         join book_dim_table bd
                         on rf.book_id=bd.book_id
 
-                        where bd.book_theme='{theme_selected}' and rd.author in (False,0)
+                        where bd.book_theme='{theme_selected}' and rd.author in (False)
                 """
                 cursor.execute(query)
                 count = cursor.fetchone()[0]
@@ -235,7 +235,7 @@ def main_page_layout(theme_selected):
                         FROM review_fact_table rf
                         JOIN book_dim_table bd ON rf.book_id=bd.book_id
                         JOIN reviewer_dim_table rd ON rd.review_id=rf.review_id
-                        WHERE bd.book_theme='{theme_selected}' AND rd.author IN (0,1)
+                        WHERE bd.book_theme='{theme_selected}' AND rd.author IN (True,False)
                         GROUP BY 1,2
 
 
@@ -446,7 +446,7 @@ def main_page_layout(theme_selected):
 
                         join book_dim_table bd
                         on rf.book_id=bd.book_id
-                        where bd.book_theme='{theme_selected}' and rd.author in (False,0)
+                        where bd.book_theme='{theme_selected}' and rd.author in (False)
 
                         """
                         cursor.execute(query)
@@ -471,7 +471,7 @@ def main_page_layout(theme_selected):
 
                         join book_dim_table bd
                         on rf.book_id=bd.book_id
-                        where bd.book_theme='{theme_selected}' and rd.author in (True,1)
+                        where bd.book_theme='{theme_selected}' and rd.author in (True)
 
                         """
                         cursor.execute(query)

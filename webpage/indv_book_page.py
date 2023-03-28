@@ -36,7 +36,7 @@ def individual_book_layout(book_name):
                         select 
                         count(name)
                         from t1
-                        WHERE book_name = '{book_name}' AND author in (True,1)
+                        WHERE book_name = '{book_name}' AND author in (True)
                 """
                 cursor.execute(query)
                 count = cursor.fetchone()[0]
@@ -52,7 +52,7 @@ def individual_book_layout(book_name):
                         select 
                         count(*)
                         from t1
-                        WHERE book_name = '{book_name}' AND author in (False,0)
+                        WHERE book_name = '{book_name}' AND author in (False)
                 """
                 cursor.execute(query)
                 count = cursor.fetchone()[0]
@@ -159,7 +159,7 @@ def individual_book_layout(book_name):
                         from review_fact_table rf
                         join reviewer_dim_table rd
                         on rf.name=rd.name and rf.review_id=rd.review_id
-                        where book_name='{book_name}' and rd.author in (True,1) and rf.language='en' 
+                        where book_name='{book_name}' and rd.author in (True) and rf.language='en' 
                         order by rd.num_author_followers desc
                         limit 1
 
@@ -177,7 +177,7 @@ def individual_book_layout(book_name):
                                 from review_fact_table rf
                                 join reviewer_dim_table rd
                                 on rf.name=rd.name and rf.review_id=rd.review_id
-                                where book_name='{book_name}' and rd.author in (True,1) and rf.language='en' 
+                                where book_name='{book_name}' and rd.author in (True) and rf.language='en' 
                                 order by rd.num_author_books desc
                                 limit 1
 
@@ -534,7 +534,7 @@ def individual_book_layout(book_name):
                         from review_fact_table rf
                         join reviewer_dim_table rd
                         on rd.name = rf.name and rd.review=rf.review
-                        where book_name='{book_name}' and rd.author in (False,0)
+                        where book_name='{book_name}' and rd.author in (False)
 
                         """
                         cursor.execute(query)
@@ -556,7 +556,7 @@ def individual_book_layout(book_name):
                         from review_fact_table rf
                         join reviewer_dim_table rd
                         on rd.name = rf.name and rd.review=rf.review
-                        where book_name='{book_name}' and rd.author in (True,1)
+                        where book_name='{book_name}' and rd.author in (True)
 
                         """
                         cursor.execute(query)

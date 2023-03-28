@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from db_conn import mydb
 import plotly.graph_objs as go
-from nltk.corpus import stopwords
 import requests
 
 

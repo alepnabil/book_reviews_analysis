@@ -1,4 +1,6 @@
 import streamlit as st
+st.set_page_config(page_title='Book reviews analysis', layout='wide')
+
 import requests
 import mysql.connector
 import plotly.express as px
@@ -11,7 +13,6 @@ from book_intro import *
 from streamlit_lottie import st_lottie
 
 
-st.set_page_config(page_title='Book reviews analysis', layout='wide')
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 hide_default_format = """

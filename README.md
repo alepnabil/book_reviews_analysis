@@ -1,38 +1,34 @@
 
 # Book reviews analysis
 
-How can we determine an author is right? What do people have to say about certain books? Does only reading the book makes us understand it? Do we have the same opinion as others about books we read?
-This is a book reviews sentiment analysis project in which the book reviews are scraped from different book review websites. After finishing a book, reviews about that book will be scraped to carry out analysis on other reader's opinions.
- 
+This is a data engineering project where readers review from [Goodreads.com](https://www.goodreads.com/?ref=nav_hom) were scraped and sentiment analysis were performed. Collected raw scraped data were stored in a raw data AWS S3 bucket. Raw scraped data from S3 is then pulled and processed using libraries such as Pandas, Vader(sentiment analysis), Langdetect(Language classifier). Clean data is then stored inside a clean data AWS S3 bucket. Clean data from S3 bucket is then loaded into AWS RDS using AWS Glue. Finally, clean and formatted data is visualized using Streamlit Cloud.
 
-## Aim of project
-- Apply constructivism learning by comparing other reader's reviewer.
-- Carry out the sentiment analysis behind the doctrine that is being put forward by the author.
+# Architechture
+
+
+# Link to dashboard
+https://bookreviewsentiment.streamlit.app/
+> *(Link does not work all the time as connection to data warehouse requires app reboot.)*
+ 
+# Dashboard demo
+
 
  
  
-## Folder structure
-| Scripts | Description |
+# Folder structure
+| Folder | Description |
 | --- | ----------- |
-| scrape.py | Extract and gather data by scraping from book review websites by using webscraping tools such as Beautifulsoup and Selenium |
-| append_data.py | Load all gathered data into 1 csv file |
-| df.csv | Unclean text data |
-| data cleaning.ipynb| Cleaning raw text data by using multiple NLTK techniques such as stemming text data,lemmatizing text data,removing stop words, removing punctuation, and converting text to lower case|
-| df_final.csv | Cleaned text data 
-| eda_and_sentiment_analysis.ipynb | Carried out exploratory data analysis on reviews to gain insights and sentiment analysis to gain better undestanding of the books|
-
- 
- 
-## Tech
+| collecting_data | Scrape data using Selenium and Selenium Image from Docker |
+| dags| ETL pipeline |
+| webpage | Streamlit dashboard customization |
 
 
-**Language:** Python
+# ETL
 
-**Libraries:** Requests,Pandas,Seaborn,Matplotlib,NLTK,Vader,Malaya,Textblob
 
-**Web scraping:** Beautifulsoup,Selenium
+# Data warehouse
 
-**Books:** Natural Language Processing Recipes by Apress
+
 
 
 

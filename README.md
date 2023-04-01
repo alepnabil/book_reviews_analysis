@@ -5,22 +5,12 @@ This is a data engineering project where readers review from [Goodreads.com](htt
 
 # Architechture
 ![final drawio](https://user-images.githubusercontent.com/65908522/229275463-52d68e8e-7cee-4995-937b-d92d8ce5c410.png)
-
+> *Click on image to view full image*
 
 # Link to dashboard
 https://bookreviewsentiment.streamlit.app/
 > *(Link does not work all the time as connection to data warehouse requires app reboot.)*
  
-
-
- 
- 
-# Folder structure
-| Folder | Description |
-| --- | ----------- |
-| collecting_data | Scrape data using Selenium and Selenium Image from Docker |
-| dags| ETL pipeline |
-| webpage | Streamlit dashboard customization |
 
 
 # ETL

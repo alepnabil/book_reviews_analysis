@@ -236,7 +236,7 @@ def main_page_layout(theme_selected):
                         JOIN book_dim_table bd ON rf.book_id = bd.book_id
                         JOIN reviewer_dim_table rd ON rd.review_id = rf.review_id
                         WHERE
-                        bd.book_theme = 'social contract' AND rd.author IN ('True', 'False')
+                        bd.book_theme = '{theme_selected}' AND rd.author IN ('True', 'False')
                         GROUP BY
                         1, 2;
 

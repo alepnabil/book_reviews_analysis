@@ -3,6 +3,10 @@
 
 This is a data engineering project where readers reviews from [Goodreads.com](https://www.goodreads.com/?ref=nav_hom) were scraped and sentiment analysis were performed. Collected raw scraped data were stored in a raw data AWS S3 bucket. Raw scraped data from S3 is then pulled and processed using libraries such as Pandas, Vader(sentiment analysis), Langdetect(Language classifier) and orchestrated using Apache Airflow. Clean data is then stored inside a clean data AWS S3 bucket. Clean data from S3 bucket is then loaded into AWS RDS using AWS Glue. Finally, clean and formatted data is visualized using Streamlit Cloud.
 
+# Demo
+![gif](https://user-images.githubusercontent.com/65908522/229330837-d8a1813e-1e99-41cd-b893-5567c5f21826.gif)
+
+
 # Architechture
 ![final4 drawio](https://user-images.githubusercontent.com/65908522/229278332-a595922b-36ef-43b2-9b7d-8d1b58a5f9f9.png)
 > *Click on image to view full image*

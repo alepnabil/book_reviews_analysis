@@ -35,7 +35,7 @@ lotte_animation=load_lottie_animation('https://assets7.lottiefiles.com/private_f
 st_lottie(lotte_animation,height=200,key='book')
 st.title('Book review analysis')
 st.write('Hi there !👋 This is a political philosophy book reviews sentiment analysis dashboard. This projects scrapes book reviews of books (_that I have read or plan to read_) from [Goodreads](https://www.goodreads.com/?ref=nav_hom) and analyzes the data gathered to gain more insights and understanding regarding the overall opinions of other readers.')
-st.write(' To know more about this project, check out the link to the Github link : [Project link](https://github.com/alepnabil/book_reviews_analysis)')
+st.write(' To know more about this project, check out the Github link : [Project link](https://github.com/alepnabil/book_reviews_analysis)')
 st.write('__You can choose whether to see analysis regarding a specific theme/doctrine/ideology 👇__')
 st.write('__or each individual books 👈__')
 st.write('---')

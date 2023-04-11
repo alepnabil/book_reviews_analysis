@@ -35,6 +35,7 @@ lotte_animation=load_lottie_animation('https://assets7.lottiefiles.com/private_f
 st_lottie(lotte_animation,height=200,key='book')
 st.title('Book review analysis')
 st.write('Hi there !👋 This is a political philosophy book reviews sentiment analysis dashboard. This projects scrapes book reviews of books (_that I have read or plan to read_) from [Goodreads](https://www.goodreads.com/?ref=nav_hom) and analyzes the data gathered to gain more insights and understanding regarding the overall opinions of other readers.')
+st.write(' To know more about this project, check out the link to the Github link : [Project link](https://github.com/alepnabil/book_reviews_analysis)')
 st.write('__You can choose whether to see analysis regarding a specific theme/doctrine/ideology 👇__')
 st.write('__or each individual books 👈__')
 st.write('---')
@@ -45,7 +46,8 @@ st.write('---')
 options = ['All themes', 
            'Leviathan', 'Second Treatise of Government', 'The social contract',
            'Utilitarianism','The Principles of Morals and Legislation',
-           'The state and revolution','Das Kapital']
+           'The state and revolution','Das Kapital'
+           'The Garments of Court and Palace: Machiavelli and the World that he Made']
 
 # Create a sidebar with the dropdown menu
 selected_option = st.sidebar.selectbox('Select a book', options)
@@ -58,7 +60,7 @@ st.sidebar.caption('_It is recommended to close this sidebar for better viewing_
 # Define the pages for each option
 if selected_option == 'All themes':
     # This is the main page
-    theme_options = ['Social contract','Utilitarianism','Communism']
+    theme_options = ['Social contract','Utilitarianism','Communism','Machiavellianism']
     theme_options_selected=st.selectbox('Select theme',theme_options)        
     main_page_layout(theme_options_selected)
 
@@ -91,4 +93,7 @@ elif selected_option == 'Das Kapital':
     # This is the page for Second Treatise of Government
     st.text_area(f'This is the page for {selected_option}.',das_kapital,height=110)
     individual_book_layout(selected_option)
-
+elif selected_option == 'The Garments of Court and Palace: Machiavelli and the World that he Made':
+    # This is the page for Second Treatise of Government
+    st.text_area(f'This is the page for {selected_option}.',machiavelli_and_the_world_he_made,height=110)
+    individual_book_layout(selected_option)

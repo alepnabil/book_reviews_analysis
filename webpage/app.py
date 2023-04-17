@@ -47,7 +47,7 @@ options = ['All themes',
            'Leviathan', 'Second Treatise of Government', 'The social contract',
            'Utilitarianism','The Principles of Morals and Legislation',
            'The state and revolution','Das Kapital'
-           'The Garments of Court and Palace: Machiavelli and the World that he Made']
+           ]
 
 # Create a sidebar with the dropdown menu
 selected_option = st.sidebar.selectbox('Select a book', options)
@@ -60,7 +60,7 @@ st.sidebar.caption('_It is recommended to close this sidebar for better viewing_
 # Define the pages for each option
 if selected_option == 'All themes':
     # This is the main page
-    theme_options = ['Social contract','Utilitarianism','Communism','Machiavellianism']
+    theme_options = ['Social contract','Utilitarianism','Communism']
     theme_options_selected=st.selectbox('Select theme',theme_options)        
     main_page_layout(theme_options_selected)
 

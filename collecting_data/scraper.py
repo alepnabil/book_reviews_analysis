@@ -112,12 +112,12 @@ class Goodreadscraper():
             elif current_height == last_height and self.page_count == 2:
                 # try clicking on 'Show more reviews' button
                 try:
-                    time.sleep(5)
+                    time.sleep(30)
                     self.click_more_review_button()
                 # if button is not available means at the very bottom of the page
                 except:
                     self.logger.info(f'------ DONE SCROLLING TO THE BOTTOM OF {self.page_count} PAGE-----')
-                    time.sleep(5)
+                    time.sleep(60)
                     break
             last_height = current_height
 
@@ -131,15 +131,20 @@ class Goodreadscraper():
          """
 
         if self.page_count == 1:
-            self.logger.info('-------CLICKING ON MORE REVIEW BUTTON-----')
-            time.sleep(5)
-            next_review_button = self.driver.find_element(By.XPATH,
-                                                          '//*[@id="ReviewsSection"]/div[5]/div[4]/a')
-            self.driver.execute_script("arguments[0].click();", next_review_button)
+            try:
+                self.logger.info('-------CLICKING ON MORE REVIEW BUTTON-----')
+                time.sleep(5)
+                next_review_button = self.driver.find_element(By.XPATH,
+                                                            '//*[@id="ReviewsSection"]/div[5]/div[4]/a')
+                self.driver.execute_script("arguments[0].click();", next_review_button)
 
-            self.url = self.driver.current_url
-            self.page_count += 1
-            time.sleep(5)
+                self.url = self.driver.current_url
+                self.page_count += 1
+                time.sleep(5)
+            except NoSuchElementException:
+                #case if there are only reviews on the first page only
+                self.logger.info('----No more review button---')
+                pass
         elif self.page_count == 2:
             self.logger.info('-------CLICKING ON MORE REVIEW BUTTON-----')
 

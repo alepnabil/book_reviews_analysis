@@ -7,6 +7,24 @@ This is a data engineering project where readers reviews from [Goodreads.com](ht
 ![gif](https://user-images.githubusercontent.com/65908522/229330837-d8a1813e-1e99-41cd-b893-5567c5f21826.gif)
 
 
+# DAG folder directory
+
+| directory       | Details          |
+| ------------- |:-------------:|
+| dags/dag.py   | Main DAG containing Airflow orchestration.|
+| dags/scrape_data.py   |Selenium and beautifulsoup web scraper.|
+| dags/preprocess_data/process_data.py   | Process data such as getting author number of books, ratings given by reader etc. Contains data coversion and data validation functions.
+| dags/preprocess_data/data_validation.py   | Contains data validation functions using Pandera.|
+|dags/aws_functions   | Contains AWS functions to upload data to S3 and Redshift.|
+
+# Visualization folder directory
+| directory | Details|
+| ------------- |:-------------:|
+| webpage/main_page.py   |Contains SQL queries for main page visualization analysis and Plotly graphs.|
+| webpage/indv_book_page.py   | Contains SQL queries for individual books visualization analysis.|
+
+
+
 # Architechture
 ![final4 drawio](https://user-images.githubusercontent.com/65908522/229278332-a595922b-36ef-43b2-9b7d-8d1b58a5f9f9.png)
 > *Click on image to view full image*
